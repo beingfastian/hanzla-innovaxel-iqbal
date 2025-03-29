@@ -77,7 +77,7 @@ def update_short_url(request, short_code):
             return Response({
                 'id': updated_url.id,
                 'url': updated_url.original_url,
-                'short_code': updated_url.short_code,
+                'short_code': url_obj.short_code,
                 'updated_at': updated_url.updated_at
             }, status=status.HTTP_200_OK)
         
