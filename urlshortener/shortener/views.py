@@ -20,7 +20,7 @@ def create_short_url(request):
             url_obj = serializer.save()
             return Response({
                 'id': url_obj.id,
-                'original_url': url_obj.original_url,
+                'url': url_obj.original_url,
                 'short_code': url_obj.short_code,
                 'created_at': url_obj.created_at,
                 'updated_at': url_obj.updated_at
@@ -33,20 +33,35 @@ def create_short_url(request):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework import status
+from django.core.exceptions import ObjectDoesNotExist
+from .models import ShortURL
+
 @api_view(['GET'])
 def retrieve_original_url(request, short_code):
     """
-    Retrieve original URL and increment access count
+    Retrieve original URL details
     """
     try:
         url_obj = ShortURL.objects.get(short_code=short_code)
         url_obj.access_count += 1
         url_obj.save()
-        return redirect(url_obj.original_url)
+
+        response_data = {
+            "id": str(url_obj.id),
+            "url": url_obj.original_url,
+            "shortCode": url_obj.short_code,
+            "createdAt": url_obj.created_at.isoformat(),
+            "updatedAt": url_obj.updated_at.isoformat(),
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
     except ObjectDoesNotExist:
-        return Response({
-            'error': 'Short URL not found'
-        }, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "Short URL not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['PUT'])
 def update_short_url(request, short_code):
@@ -61,7 +76,7 @@ def update_short_url(request, short_code):
             updated_url = serializer.save()
             return Response({
                 'id': updated_url.id,
-                'original_url': updated_url.original_url,
+                'url': updated_url.original_url,
                 'short_code': updated_url.short_code,
                 'updated_at': updated_url.updated_at
             }, status=status.HTTP_200_OK)
@@ -96,7 +111,7 @@ def get_url_statistics(request, short_code):
         url_obj = ShortURL.objects.get(short_code=short_code)
         return Response({
             'id': url_obj.id,
-            'original_url': url_obj.original_url,
+            'url': url_obj.original_url,
             'short_code': url_obj.short_code,
             'created_at': url_obj.created_at,
             'updated_at': url_obj.updated_at,
