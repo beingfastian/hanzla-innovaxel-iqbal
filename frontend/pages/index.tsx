@@ -1,113 +1,188 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+'use client'
+import { useState } from 'react'
+import styles from '../styles/Home.module.css'
 
 export default function Home() {
+  const [url, setUrl] = useState('')
+  const [shortCode, setShortCode] = useState('')
+  const [result, setResult] = useState<null | {
+    id: string
+    url: string
+    shortCode: string
+    createdAt: string
+    updatedAt: string
+    accessCount?: number
+  }>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+  
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/shorten/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ original_url: url })
+      })
+      const data = await response.json()
+  
+      if (response.ok) {
+        setResult({
+          id: data.id,
+          url: data.url,
+          shortCode: data.short_code,
+          createdAt: new Date(data.created_at).toLocaleString(),
+          updatedAt: new Date(data.updated_at).toLocaleString(),
+        })
+        setShortCode(data.short_code)
+      } else {
+        setError(data.detail || 'Something went wrong')
+      }
+    } catch (error: any) {
+      setError(`Network Error: ${error.message}`)
+    }
+  
+    setLoading(false)
+  }
+
+  const handleRetrieve = async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/${shortCode}/`)
+      const data = await response.json()
+      if (response.ok) {
+        setResult({
+          id: data.id,
+          url: data.url,
+          shortCode: data.shortCode,
+          createdAt: new Date(data.createdAt).toLocaleString(),
+          updatedAt: new Date(data.updatedAt).toLocaleString(),
+        })
+      } else {
+        setError(data.detail || 'Short code not found')
+      }
+    } catch (error: any) {
+      setError(`Network Error: ${error.message}`)
+    }
+  }
+
+  const handleUpdate = async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/${shortCode}/update/`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ original_url: url })
+      })
+      const data = await response.json()
+      if (response.ok) {
+        setResult({
+          id: data.id,
+          url: data.url,
+          shortCode: data.short_code,
+          createdAt: new Date(data.created_at).toLocaleString(),
+          updatedAt: new Date(data.updated_at).toLocaleString(),
+        })
+      } else {
+        setError(data.detail || 'Update failed')
+      }
+    } catch (error: any) {
+      setError(`Network Error: ${error.message}`)
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/${shortCode}/delete/`, {
+        method: 'DELETE'
+      })
+      if (response.ok) {
+        setResult(null)
+        setShortCode('')
+      } else {
+        setError('Delete failed')
+      }
+    } catch (error: any) {
+      setError(`Network Error: ${error.message}`)
+    }
+  }
+
+  const handleStats = async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/${shortCode}/stats/`)
+      const data = await response.json()
+      if (response.ok) {
+        setResult({
+          id: data.id,
+          url: data.url,
+          shortCode: data.short_code,
+          createdAt: new Date(data.created_at).toLocaleString(),
+          updatedAt: new Date(data.updated_at).toLocaleString(),
+          accessCount: data.access_count
+        })
+      } else {
+        setError(data.detail || 'Stats retrieval failed')
+      }
+    } catch (error: any) {
+      setError(`Network Error: ${error.message}`)
+    }
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <main className={styles.main}>
+      <div className={styles.container}>
+        <h1 className={styles.title}>URL Shortener</h1>
+        
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <input
+            type="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="Enter your long URL"
+            required
+            className={styles.input}
+          />
+          <button type="submit" className={styles.button} disabled={loading}>
+            {loading ? 'Shortening...' : 'Shorten'}
+          </button>
+        </form>
+
+        <input
+          type="text"
+          value={shortCode}
+          onChange={(e) => setShortCode(e.target.value)}
+          placeholder="Enter short code"
+          className={styles.input}
         />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              pages/index.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+        <div className={styles.actions}>
+          <button onClick={handleRetrieve} className={styles.button}>Retrieve</button>
+          <button onClick={handleUpdate} className={styles.button}>Update</button>
+          <button onClick={handleDelete} className={styles.button}>Delete</button>
+          <button onClick={handleStats} className={styles.button}>Get Stats</button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+
+        {result && (
+          <div className={styles.result}>
+            <p><strong>ID:</strong> {result.id}</p>
+            <p><strong>Original URL:</strong> {result.url}</p>
+            <p><strong>Short Code:</strong> {result.shortCode}</p>
+            <p><strong>Created At:</strong> {result.createdAt}</p>
+            <p><strong>Updated At:</strong> {result.updatedAt}</p>
+            {result.accessCount !== undefined && (
+              <p><strong>Access Count:</strong> {result.accessCount}</p>
+            )}
+          </div>
+        )}
+
+        {error && (
+          <div className={styles.error}>
+            <p>{error}</p>
+          </div>
+        )}
+      </div>
+    </main>
+  )
 }
