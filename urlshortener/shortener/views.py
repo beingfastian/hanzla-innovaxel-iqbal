@@ -48,30 +48,30 @@ def retrieve_original_url(request, short_code):
             'error': 'Short URL not found'
         }, status=status.HTTP_404_NOT_FOUND)
 
-# @api_view(['PUT'])
-# def update_short_url(request, short_code):
-#     """
-#     Update an existing short URL
-#     """
-#     try:
-#         url_obj = ShortURL.objects.get(short_code=short_code)
-#         serializer = ShortURLSerializer(url_obj, data=request.data, partial=True)
+@api_view(['PUT'])
+def update_short_url(request, short_code):
+    """
+    Update an existing short URL
+    """
+    try:
+        url_obj = ShortURL.objects.get(short_code=short_code)
+        serializer = ShortURLSerializer(url_obj, data=request.data, partial=True)
         
-#         if serializer.is_valid():
-#             updated_url = serializer.save()
-#             return Response({
-#                 'id': updated_url.id,
-#                 'original_url': updated_url.original_url,
-#                 'short_code': updated_url.short_code,
-#                 'updated_at': updated_url.updated_at
-#             }, status=status.HTTP_200_OK)
+        if serializer.is_valid():
+            updated_url = serializer.save()
+            return Response({
+                'id': updated_url.id,
+                'original_url': updated_url.original_url,
+                'short_code': updated_url.short_code,
+                'updated_at': updated_url.updated_at
+            }, status=status.HTTP_200_OK)
         
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-#     except ObjectDoesNotExist:
-#         return Response({
-#             'error': 'Short URL not found'
-#         }, status=status.HTTP_404_NOT_FOUND)
+    except ObjectDoesNotExist:
+        return Response({
+            'error': 'Short URL not found'
+        }, status=status.HTTP_404_NOT_FOUND)
 
 # @api_view(['DELETE'])
 # def delete_short_url(request, short_code):
