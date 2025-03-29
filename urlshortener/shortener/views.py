@@ -33,20 +33,20 @@ def create_short_url(request):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# @api_view(['GET'])
-# def retrieve_original_url(request, short_code):
-#     """
-#     Retrieve original URL and increment access count
-#     """
-#     try:
-#         url_obj = ShortURL.objects.get(short_code=short_code)
-#         url_obj.access_count += 1
-#         url_obj.save()
-#         return redirect(url_obj.original_url)
-#     except ObjectDoesNotExist:
-#         return Response({
-#             'error': 'Short URL not found'
-#         }, status=status.HTTP_404_NOT_FOUND)
+@api_view(['GET'])
+def retrieve_original_url(request, short_code):
+    """
+    Retrieve original URL and increment access count
+    """
+    try:
+        url_obj = ShortURL.objects.get(short_code=short_code)
+        url_obj.access_count += 1
+        url_obj.save()
+        return redirect(url_obj.original_url)
+    except ObjectDoesNotExist:
+        return Response({
+            'error': 'Short URL not found'
+        }, status=status.HTTP_404_NOT_FOUND)
 
 # @api_view(['PUT'])
 # def update_short_url(request, short_code):
