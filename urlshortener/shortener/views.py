@@ -87,22 +87,22 @@ def delete_short_url(request, short_code):
             'error': 'Short URL not found'
         }, status=status.HTTP_404_NOT_FOUND)
 
-# @api_view(['GET'])
-# def get_url_statistics(request, short_code):
-#     """
-#     Get statistics for a short URL
-#     """
-#     try:
-#         url_obj = ShortURL.objects.get(short_code=short_code)
-#         return Response({
-#             'id': url_obj.id,
-#             'original_url': url_obj.original_url,
-#             'short_code': url_obj.short_code,
-#             'created_at': url_obj.created_at,
-#             'updated_at': url_obj.updated_at,
-#             'access_count': url_obj.access_count
-#         }, status=status.HTTP_200_OK)
-#     except ObjectDoesNotExist:
-#         return Response({
-#             'error': 'Short URL not found'
-#         }, status=status.HTTP_404_NOT_FOUND)
+@api_view(['GET'])
+def get_url_statistics(request, short_code):
+    """
+    Get statistics for a short URL
+    """
+    try:
+        url_obj = ShortURL.objects.get(short_code=short_code)
+        return Response({
+            'id': url_obj.id,
+            'original_url': url_obj.original_url,
+            'short_code': url_obj.short_code,
+            'created_at': url_obj.created_at,
+            'updated_at': url_obj.updated_at,
+            'access_count': url_obj.access_count
+        }, status=status.HTTP_200_OK)
+    except ObjectDoesNotExist:
+        return Response({
+            'error': 'Short URL not found'
+        }, status=status.HTTP_404_NOT_FOUND)
